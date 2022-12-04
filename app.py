@@ -20,13 +20,26 @@ class User(db.Model):
 
 @app.route("/")
 def index():
-    # if this user is logged in, take to home
-    # if not logged in, take to login
-    return render_template('home.html')
+    if "username" in session:
+        return render_template('home.html', user = session['username'])
+    else:
+        return render_template('login.html')
 
-@app.route("/login")
+@app.route("/login", methods=['POST', 'GET'])
 def login():
-    return render_template('login.html')
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        user = User.query.filter_by(username=username).first()
+
+        if user and (password == user.password):
+            session['username'] = username
+            return redirect("/")
+        else:
+            return render_template('login.html', error = "Invalid username or password.")
+    else:
+        return render_template('login.html')
 
 @app.route("/signup", methods=['POST', 'GET'])
 def signup():
